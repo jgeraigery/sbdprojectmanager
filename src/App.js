@@ -1,6 +1,19 @@
 import logo from './logo.svg';
 import './App.css';
 
+var OAuth = require('oauthio');
+var username = 'dummy'
+
+OAuth.initialize('_kPudQPY3u7LLbJwnCHnB8v8y5M')
+OAuth.popup('basecamp').done(function(result) {
+    console.log(result)
+    // do some stuff with result
+    result.me().done(function(data) {
+      // do something with `data`, e.g. print data.name
+      username = data.name      
+    })
+})
+
 function App() {
   return (
     <div className="App">
@@ -15,7 +28,7 @@ function App() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Learn React
+          Learn React {username}!!
         </a>
       </header>
     </div>
