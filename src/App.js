@@ -18,7 +18,7 @@ OAuth.popup('basecamp').done(function(result) {
       const config = {
         method: 'get',
         url: `https://3.basecampapi.com/${data.id}/people.json`,
-        headers: { Authorization: `Bearer ${result.access_token}`, 'User-Agent' : 'SBDProjectManager (adamgf@gmail.com)', 'Content-Type' : 'application/json' }
+        headers: { 'Authorization': `Bearer ${result.access_token}`, 'Access-Control-Allow-Origin' : 'https://adamgf.github.io', 'User-Agent' : 'SBDProjectManager (adamgf@gmail.com)', 'Content-Type' : 'application/json' }
       };
       const someFunc = async() => {
           alert('Entered someFunc')
