@@ -1,7 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
+import { OAuth } from 'oauthio-web';
 
-var OAuth = require('oauthio');
 var username = 'dummy'
 
 OAuth.initialize('_kPudQPY3u7LLbJwnCHnB8v8y5M')
@@ -10,7 +10,7 @@ OAuth.popup('basecamp').done(function(result) {
     // do some stuff with result
     result.me().done(function(data) {
       // do something with `data`, e.g. print data.name
-      username = data.name      
+      alert('Hello ' + data.name + '!') 
     })
 })
 
