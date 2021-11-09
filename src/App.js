@@ -1,5 +1,5 @@
 import React from 'react'
-import logo from './logo.svg';
+import logo from './image003.png';
 import './App.css';
 import { OAuth } from 'oauthio-web';
 import Gallery from 'react-grid-gallery';
@@ -173,10 +173,11 @@ class App extends React.Component {
     return (
     <div className="App">
       <header className="App-header">
+		<div style={{ 'align' : 'left' }}><img src={logo} alt="logo" /> Project Management Tool (<i>invite only</i>)</div>
         <div>
           All People:
           <div>
-            <Gallery images={this.state.peoplethumbnails} onClickThumbnail={onSelectThumbnail} />
+            <Gallery images={this.state.peoplethumbnails} onClickThumbnail={onSelectThumbnail} style={{ 'width' : '80%' }}/>
           </div>     
         </div>
         <div>
