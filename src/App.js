@@ -20,8 +20,6 @@ const VIPs = [
 	36533990, 
 	36540113, 
 	36540202
-	// 37361772
-	// 3778922
 ]
 
 const customStyles = {
@@ -49,8 +47,7 @@ const customStyles = {
 var targetPeopleIDs = []
 var targetProjectIDs = []
 
-function postPeopleToProject() {
-	//alert('target people ids are: ' + JSON.stringify(targetPeopleIDs))
+async function postPeopleToProject() {
 	if (targetPeopleIDs.length == 0 || targetProjectIDs.length == 0) {
 	  alert('Please select at least one person and one project.')
 	}
@@ -70,21 +67,24 @@ function postPeopleToProject() {
         }
 	    
 		//console.log('access_token is: ' + result.access_token)
-		
+	    const putData = `{ "grant" : [${targetPeopleIDs}], "revoke" : [] }`
+				
         for (const projectId of targetProjectIDs) {
-		  //alert(`https://3.basecampapi.com/${userId}/projects/${projectId}/people/users.json`)
 		  result.put(`https://3.basecampapi.com/${userId}/projects/${projectId}/people/users.json`, {
-		    "grant" : targetPeopleIDs,
-			"revoke" : []    	
+			headers: {
+			  "Content-Type" : "application/json"
+			},
+		    data: putData
 		  })
 	      .done(function (response) {
-	          //this will display the id of the message in the console
-	          alert('Success granting users: ' + JSON.stringify(response))
+	        //this will display the id of the message in the console
+	        //alert('Success granting users: ' + JSON.stringify(response))
+		    handleProjectChange([], 'clear')
 	      })
 	      .fail(function (err) {
-	          //handle error with err
-			  alert('Failed to grant users: ' + JSON.stringify(targetPeopleIDs) + 
-			    ' for project: ' + projectId + ' err: ' + JSON.stringify(err))
+	        //handle error with err
+			alert('Failed to grant users: ' + JSON.stringify(targetPeopleIDs) + 
+			      ' for project: ' + projectId + ' err: ' + JSON.stringify(err))
 	      });
 		  
 		}
@@ -115,7 +115,6 @@ function onSelectThumbnail() {
     alert(this.props.item.caption + ' has been removed!')
     this.props.item.isSelected = false
   }
-  alert('Current IDs are: ' + JSON.stringify(targetPeopleIDs))
 }
 
 function handleProjectChange(e, e2) {
