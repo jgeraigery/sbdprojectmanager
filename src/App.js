@@ -74,12 +74,9 @@ function postPeopleToProject() {
         for (const projectId of targetProjectIDs) {
 		  //alert(`https://3.basecampapi.com/${userId}/projects/${projectId}/people/users.json`)
 		  result.put(`https://3.basecampapi.com/${userId}/projects/${projectId}/people/users.json`, {
-			  data : {
-			  	"grant" : targetPeopleIDs,
-				"revoke" : [],
-				"create" : []
-			  }  	
-		  })
+		    "grant" : targetPeopleIDs,
+			"revoke" : []    	
+		  )
 	      .done(function (response) {
 	          //this will display the id of the message in the console
 	          alert('Success granting users: ' + JSON.stringify(response))
