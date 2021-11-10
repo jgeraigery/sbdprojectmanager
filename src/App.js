@@ -78,8 +78,7 @@ async function postPeopleToProject() {
 		  })
 	      .done(function (response) {
 	        //this will display the id of the message in the console
-	        //alert('Success granting users: ' + JSON.stringify(response))
-		    handleProjectChange([], 'clear')
+	        alert('Success granting users: ' + JSON.stringify(response))
 	      })
 	      .fail(function (err) {
 	        //handle error with err
