@@ -3,8 +3,104 @@ import logo from './image003.png';
 import './App.css';
 import { OAuth } from 'oauthio-web';
 import Gallery from 'react-grid-gallery';
+import Select from 'react-select';
+
+const VIPs = [
+	12921371, 
+	12964335, 
+	12964336, 
+	12998921, 
+	13325954, 
+	20877820, 
+	36329995, 
+	36330029, 
+	36330129, 
+	36331086, 
+	36492685, 
+	36533990, 
+	36540113, 
+	36540202
+	// 37361772
+	// 3778922
+]
+
+const customStyles = {
+  option: (provided, state) => ({
+    ...provided,
+    borderBottom: '1px dotted yellow',
+    color: state.isSelected ? 'blue' : 'yellow',
+    padding: 20,
+	backgroundColor: '#808080',
+	color: '#ffffff'
+  }),
+  control: () => ({
+    // none of react-select's styles are passed to <Control />
+    width: '100%',
+	border: '1px dotted yellow'
+  }),
+  singleValue: (provided, state) => {
+    const opacity = state.isDisabled ? 0.5 : 1;
+    const transition = 'opacity 300ms';
+
+    return { ...provided, opacity, transition };
+  }
+}
 
 var targetPeopleIDs = []
+var targetProjectIDs = []
+
+function postPeopleToProject() {
+	//alert('target people ids are: ' + JSON.stringify(targetPeopleIDs))
+	if (targetPeopleIDs.length == 0 || targetProjectIDs.length == 0) {
+	  alert('Please select at least one person and one project.')
+	}
+	else {
+      OAuth.initialize('_kPudQPY3u7LLbJwnCHnB8v8y5M')
+	  OAuth.popup('basecamp')
+	  .done(function(result) {
+	    result.me().done(function(data) {
+
+        var userId = data.id 
+        let accounts = data.raw.accounts
+        for (var i=0;i < accounts.length;i++) {
+          if (accounts[i].name === "Stanley Black & Decker") {
+            userId = accounts[i].id
+            break
+          }
+        }
+	    
+		//console.log('access_token is: ' + result.access_token)
+		
+        for (const projectId of targetProjectIDs) {
+		  //alert(`https://3.basecampapi.com/${userId}/projects/${projectId}/people/users.json`)
+		  result.put(`https://3.basecampapi.com/${userId}/projects/${projectId}/people/users.json`, {
+			  data : {
+			  	"grant" : targetPeopleIDs,
+				"revoke" : [],
+				"create" : []
+			  }  	
+		  })
+	      .done(function (response) {
+	          //this will display the id of the message in the console
+	          alert('Success granting users: ' + JSON.stringify(response))
+	      })
+	      .fail(function (err) {
+	          //handle error with err
+			  alert('Failed to grant users: ' + JSON.stringify(targetPeopleIDs) + 
+			    ' for project: ' + projectId + ' err: ' + JSON.stringify(err))
+	      });
+		  
+		}
+		
+	    })
+	  })
+      .fail(function(err) {
+        alert('OAuth failed with err: ' + JSON.stringify(err)) 
+      })            
+	  
+		
+	}
+}
 
 function onSelectThumbnail() {
   if (!this.props.item.isSelected) {
@@ -17,7 +113,7 @@ function onSelectThumbnail() {
     const personIDToBeRemoved = this.props.item.tags[0].value
     const index = targetPeopleIDs.indexOf(personIDToBeRemoved)
     if (index !== -1) {
-      targetPeopleIDs.splice(index, 1); 
+      targetPeopleIDs.splice(index, 1) 
     }
     alert(this.props.item.caption + ' has been removed!')
     this.props.item.isSelected = false
@@ -25,165 +121,152 @@ function onSelectThumbnail() {
   alert('Current IDs are: ' + JSON.stringify(targetPeopleIDs))
 }
 
+function handleProjectChange(e, e2) {
+  let optionAction = e2.action
+  if (optionAction === 'select-option') {
+    targetProjectIDs.push(e2.option.value)
+  }
+  else if (optionAction === 'clear') {
+  	targetProjectIDs = []
+  }
+  else if (optionAction === 'remove-value') {
+	const index = targetProjectIDs.indexOf(e2.removedValue.value)
+	if (index !== -1) {
+	  targetProjectIDs.splice(e2.removedValue.value, index)
+	}
+  }
+  else {
+  	alert('Unrecognized action: ' + optionAction + ' sent to handleProjectChange().')
+  }	
+}
+
 class App extends React.Component {
 
   constructor(props) {
     super(props)
     this.state = {
-      people : [],
       peoplethumbnails : [],
-      projects : ""    
+      projects : []    
     }
   }
 
   componentDidMount = async() => {
 
-    const updatePeopleState = (peopleList, peopleThumbnails) => {
-      //alert('people: ' + peopleList)
-      var existingpeople = this.state.people
-      var existingthumbnails = this.state.peoplethumbnails
-      if (peopleList && peopleList.length > 0) {
-        
-        const newpeople = existingpeople.concat(peopleList) 
+    const updatePeopleState = (peopleThumbnails) => {
+      const existingthumbnails = this.state.peoplethumbnails
+      if (peopleThumbnails && peopleThumbnails.length > 0) {
         const newimagethumbnails = existingthumbnails.concat(peopleThumbnails)
-        alert('Total people count: ' + newpeople.length)
-        this.setState({ people : newpeople, peoplethumbnails : newimagethumbnails })
+        this.setState({ peoplethumbnails : newimagethumbnails })
       }
     }
     
     const updateProjectState = (projectsList) => {
-      //alert('projects: ' + projectsList)
-      this.setState({ projects : projectsList})
+      const existingprojects = this.state.projects
+	  if (projectsList && projectsList.length > 0) {
+	    const newprojects = existingprojects.concat(projectsList)
+        this.setState({ projects : newprojects })
+	  }
     }
 
     OAuth.initialize('_kPudQPY3u7LLbJwnCHnB8v8y5M')
-    OAuth.popup('basecamp').done(function(result) {
-      console.log(JSON.stringify(result))
-      // do some stuff with result
-
-
+    OAuth.popup('basecamp')
+	.done(function(result) {
       result.me().done(function(data) {
-        // do something with `data`, e.g. print data.name
+
         var userId = data.id 
         let accounts = data.raw.accounts
-        for (var i=0;i < accounts.length;i++) {
+		  for (var i=0;i < accounts.length;i++) {
           if (accounts[i].name === "Stanley Black & Decker") {
             userId = accounts[i].id
             break
           }
         }
-
-        const getFunc = async(theResult, peoplepage) => {
+				
+        const getPeopleFunc = async(theResult, peoplepage) => {
           theResult.get(`https://3.basecampapi.com/${userId}/people.json?page=${peoplepage}`)
           .done(function(peoplelist) {
-            var ids = []
             var thumbnailImages = []
+			var otherImages = []
             for (const person of peoplelist) {
-              ids.push(person.id)
-              const representationalImage = {
-                src: person.avatar_url,
-                thumbnail: person.avatar_url,
-                thumbnailWidth: 64,
-                thumbnailHeight: 64,
-                isSelected: false,
-                caption: person.name,
-                tags: [{ value: person.id, title: person.name }]
-              }
-              thumbnailImages.push(representationalImage)
+			  if (VIPs.indexOf(person.id) !== -1) {
+			    const representationalImage = {
+                  src: person.avatar_url,
+                  thumbnail: person.avatar_url,
+                  thumbnailWidth: 64,
+                  thumbnailHeight: 64,
+                  isSelected: false,
+                  caption: person.name,
+                  tags: [{ value: person.id, title: person.name }]
+                }
+                thumbnailImages.push(representationalImage)
+		      }
+			  else {
+			  	otherImages.push(person.id)
+			  }
             }
-            if (ids.length === 0) {
-              alert('Got zero length of people for page ' + peoplepage + '!!')
-            }
-            else {
-              updatePeopleState(ids, thumbnailImages)
-              getFunc(result, peoplepage + 1)
+            if (thumbnailImages.length > 0 || otherImages.length > 0) {
+              updatePeopleState(thumbnailImages)
+              getPeopleFunc(result, peoplepage + 1)
             }
           })
           .fail(function(err) {
-            alert('Failure condition was triggered ' + err) 
+            alert('Failed to get people: ' + JSON.stringify(err)) 
           })            
         }
 
-        getFunc(result, 1) 
+        getPeopleFunc(result, 1) 
 
-       /*
-          result.get(`https://3.basecampapi.com/${userId}/people.json?page=2`)
-          .done(function(peoplelist) {
-            console.log('People list is: ' + JSON.stringify(peoplelist))
-            var ids = [] 
-            for (const person of peoplelist) {
-              ids.push(person.id)
+        const getProjectsFunc = async(theResult, projectspage) => {
+          theResult.get(`https://3.basecampapi.com/${userId}/projects.json?page=${projectspage}`)
+          .done(function(projectslist) {
+            var projectsOptions = []
+            for (const project of projectslist) {
+			  const projectSelectOption = {
+				  value: project.id,
+				  label: project.name		
+			  }	
+			  projectsOptions.push(projectSelectOption)
             }
-            updatePeopleState(ids)
-          })
-          .fail(function (err) {
-          });
-
-          result.get(`https://3.basecampapi.com/${userId}/people.json?page=3`)
-          .done(function(peoplelist) {
-            console.log('People list is: ' + JSON.stringify(peoplelist))
-            var ids = [] 
-            for (const person of peoplelist) {
-              ids.push(person.id)
+            if (projectsOptions.length > 0) {
+              updateProjectState(projectsOptions)
+              getProjectsFunc(result, projectspage + 1)
             }
-            updatePeopleState(ids)
           })
-          .fail(function (err) {
-          });
+          .fail(function(err) {
+            alert('Failed to get projects: ' + JSON.stringify(err)) 
+          })            
+        }
 
-          result.get(`https://3.basecampapi.com/${userId}/people.json?page=4`)
-          .done(function(peoplelist) {
-            console.log('People list is: ' + JSON.stringify(peoplelist))
-            var ids = [] 
-            for (const person of peoplelist) {
-              ids.push(person.id)
-            }
-            updatePeopleState(ids)
-          })
-          .fail(function (err) {
-          });
-        */
-
-        result.get(`https://3.basecampapi.com/${userId}/projects.json`).done(function(projectslist) {
-          console.log('Project list is: ' + JSON.stringify(projectslist))
-          updateProjectState(JSON.stringify(projectslist))
-        })
+        getProjectsFunc(result, 1)
     
-     
-/*   
-      const config = {
-        method: 'get',
-        withCredentials: true,
-        url: `https://3.basecampapi.com/${userId}/people.json`,
-        headers: { 'Authorization' : `Bearer ${result.access_token}`, 'Content-Type' : 'application/json' }
-      }
-      const someFunc = async() => {
-          let res = await OAuth.get(`https://3.basecampapi.com/${userId}/people.json`, config) 
-          alert("All People: " + JSON.stringify(res));
-      }
-      someFunc()
- */
       })
     })
-
-    
+    .fail(function(err) {
+      alert('OAuth failed with err: ' + JSON.stringify(err)) 
+    })            
   }
 
   render() { 
     return (
     <div className="App">
-      <header className="App-header">
+      <body className="App-header">
 		<div style={{ 'align' : 'left' }}><img src={logo} alt="logo" /> Project Management Tool (<i>invite only</i>)</div>
-        <div>
+        <div><p/>
           All People:
           <div>
-            <Gallery images={this.state.peoplethumbnails} onClickThumbnail={onSelectThumbnail} style={{ 'width' : '80%' }}/>
+            <Gallery images={this.state.peoplethumbnails} onClickThumbnail={onSelectThumbnail} />
           </div>     
         </div>
+		<p/>
         <div>
           All Projects: 
-        </div>
-      </header>
+		  <div>
+		    <Select id='projectselector' options={this.state.projects} isMulti onChange={handleProjectChange} styles={customStyles}/>
+		  </div>
+        </div><p/>
+		<div><button onClick={postPeopleToProject} style={{ fontSize : '48px', height : '80px', width : '65%', backgroundColor : '#808080', color : '#ffffff' }}>Add People to Projects</button></div>
+        <p/><p/>
+	  </body>
     </div>
     );
   }
