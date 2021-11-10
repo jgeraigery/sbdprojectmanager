@@ -48,7 +48,7 @@ var targetPeopleIDs = []
 var targetProjectIDs = []
 
 async function postPeopleToProject() {
-	if (targetPeopleIDs.length == 0 || targetProjectIDs.length == 0) {
+	if (targetPeopleIDs.length === 0 || targetProjectIDs.length === 0) {
 	  alert('Please select at least one person and one project.')
 	}
 	else {
@@ -177,39 +177,29 @@ class App extends React.Component {
           }
         }
 				
-        const getPeopleFunc = async(theResult, peoplepage) => {
-          theResult.get(`https://3.basecampapi.com/${userId}/people.json?page=${peoplepage}`)
-          .done(function(peoplelist) {
-            var thumbnailImages = []
-			var otherImages = []
-            for (const person of peoplelist) {
-			  if (VIPs.indexOf(person.id) !== -1) {
-			    const representationalImage = {
-                  src: person.avatar_url,
-                  thumbnail: person.avatar_url,
-                  thumbnailWidth: 64,
-                  thumbnailHeight: 64,
-                  isSelected: false,
-                  caption: person.name,
-                  tags: [{ value: person.id, title: person.name }]
-                }
-                thumbnailImages.push(representationalImage)
-		      }
-			  else {
-			  	otherImages.push(person.id)
-			  }
-            }
-            if (thumbnailImages.length > 0 || otherImages.length > 0) {
-              updatePeopleState(thumbnailImages)
-              getPeopleFunc(result, peoplepage + 1)
-            }
-          })
-          .fail(function(err) {
-            alert('Failed to get people: ' + JSON.stringify(err)) 
-          })            
+        const getPeopleFunc = async(theResult) => {
+		  
+		  for (const personId of VIPs) {
+            theResult.get(`https://3.basecampapi.com/${userId}/people/${personId}.json`)
+            .done(function(person) {
+			  const representationalImage = {
+                src: person.avatar_url,
+                thumbnail: person.avatar_url,
+                thumbnailWidth: 64,
+                thumbnailHeight: 64,
+                isSelected: false,
+                caption: person.name,
+                tags: [{ value: person.id, title: person.name }]
+              }
+              updatePeopleState([representationalImage])
+            })
+            .fail(function(err) {
+              alert('Failed to get person: ' + JSON.stringify(err)) 
+            })   
+		  }         
         }
 
-        getPeopleFunc(result, 1) 
+        getPeopleFunc(result) 
 
         const getProjectsFunc = async(theResult, projectspage) => {
           theResult.get(`https://3.basecampapi.com/${userId}/projects.json?page=${projectspage}`)
