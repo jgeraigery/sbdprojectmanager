@@ -1,5 +1,5 @@
 import React from 'react'
-import logo from './image003.png';
+import logo from './SBD_Yellow_Primary.png';
 import './App.css';
 import { OAuth } from 'oauthio-web';
 import Gallery from 'react-grid-gallery';
@@ -47,57 +47,6 @@ const customStyles = {
 var targetPeopleIDs = []
 var targetProjectIDs = []
 
-async function postPeopleToProject() {
-	if (targetPeopleIDs.length === 0 || targetProjectIDs.length === 0) {
-	  alert('Please select at least one person and one project.')
-	}
-	else {
-      OAuth.initialize('_kPudQPY3u7LLbJwnCHnB8v8y5M')
-	  OAuth.popup('basecamp')
-	  .done(function(result) {
-	    result.me().done(function(data) {
-
-        var userId = data.id 
-        let accounts = data.raw.accounts
-        for (var i=0;i < accounts.length;i++) {
-          if (accounts[i].name === "Stanley Black & Decker") {
-            userId = accounts[i].id
-            break
-          }
-        }
-	    
-		//console.log('access_token is: ' + result.access_token)
-	    const putData = `{ "grant" : [${targetPeopleIDs}], "revoke" : [] }`
-				
-        for (const projectId of targetProjectIDs) {
-		  result.put(`https://3.basecampapi.com/${userId}/projects/${projectId}/people/users.json`, {
-			headers: {
-			  "Content-Type" : "application/json"
-			},
-		    data: putData
-		  })
-	      .done(function (response) {
-	        //this will display the id of the message in the console
-	        alert('Success granting users: ' + JSON.stringify(response))
-	      })
-	      .fail(function (err) {
-	        //handle error with err
-			alert('Failed to grant users: ' + JSON.stringify(targetPeopleIDs) + 
-			      ' for project: ' + projectId + ' err: ' + JSON.stringify(err))
-	      });
-		  
-		}
-		
-	    })
-	  })
-      .fail(function(err) {
-        alert('OAuth failed with err: ' + JSON.stringify(err)) 
-      })            
-	  
-		
-	}
-}
-
 function onSelectThumbnail() {
   if (!this.props.item.isSelected) {
     const personIDToAdd = this.props.item.tags[0].value
@@ -108,7 +57,10 @@ function onSelectThumbnail() {
   else {
     const personIDToBeRemoved = this.props.item.tags[0].value
     const index = targetPeopleIDs.indexOf(personIDToBeRemoved)
-    if (index !== -1) {
+	if (targetPeopleIDs.length === 1) {
+      targetPeopleIDs = []
+	}
+    else if (index !== -1) {
       targetPeopleIDs.splice(index, 1) 
     }
     alert(this.props.item.caption + ' has been removed!')
@@ -126,7 +78,10 @@ function handleProjectChange(e, e2) {
   }
   else if (optionAction === 'remove-value') {
 	const index = targetProjectIDs.indexOf(e2.removedValue.value)
-	if (index !== -1) {
+	if (targetProjectIDs.length === 1) {
+	  targetProjectIDs = []
+	}
+	else if (index !== -1) {
 	  targetProjectIDs.splice(e2.removedValue.value, index)
 	}
   }
@@ -231,11 +186,60 @@ class App extends React.Component {
     })            
   }
 
-  render() { 
+  putPeopleToProject = async() => {
+  	if (targetPeopleIDs.length === 0 || targetProjectIDs.length === 0) {
+  	  alert('Please select at least one person and one project.')
+  	}
+  	else {
+      OAuth.initialize('_kPudQPY3u7LLbJwnCHnB8v8y5M')
+  	  OAuth.popup('basecamp')
+  	  .done(function(result) {
+  	    result.me().done(function(data) {
+
+          var userId = data.id 
+          let accounts = data.raw.accounts
+          for (var i=0;i < accounts.length;i++) {
+            if (accounts[i].name === "Stanley Black & Decker") {
+              userId = accounts[i].id
+              break
+            }
+          }
+	    
+  		  //console.log('access_token is: ' + result.access_token)
+  	      const putData = `{ "grant" : [${targetPeopleIDs}], "revoke" : [] }`
+				
+          for (const projectId of targetProjectIDs) {
+  		    result.put(`https://3.basecampapi.com/${userId}/projects/${projectId}/people/users.json`, {
+  			  headers: {
+  			    "Content-Type" : "application/json"
+  			  },
+  		      data: putData
+  		    })
+  	        .done(function (response) {
+  	          //this will display the id of the message in the console
+  	          alert('Success granting users: ' + JSON.stringify(response))
+  	        })
+  	        .fail(function (err) {
+  	          //handle error with err
+  			  alert('Failed to grant users: ' + JSON.stringify(targetPeopleIDs) + 
+  			        ' for project: ' + projectId + ' err: ' + JSON.stringify(err))
+  	        });
+		  
+  		  }
+		
+  	    })
+  	  })
+      .fail(function(err) {
+        alert('OAuth failed with err: ' + JSON.stringify(err)) 
+      })            
+  	}
+  }
+
+  render() {  
     return (
     <div className="App">
       <body className="App-header">
-		<div style={{ 'align' : 'left' }}><img src={logo} alt="logo" /> Project Management Tool (<i>invite only</i>)</div>
+		<div style={{ 'align' : 'left' }}><img src={logo} alt="logo" width='293.88888888888' height='46'/> Project Management Tool (<i>invite only</i>)</div>
         <div><p/>
           All People:
           <div>
@@ -246,10 +250,10 @@ class App extends React.Component {
         <div>
           All Projects: 
 		  <div>
-		    <Select id='projectselector' options={this.state.projects} isMulti onChange={handleProjectChange} styles={customStyles}/>
+		    <Select id='projectselector' options={this.state.projects} isMulti onChange={handleProjectChange} styles={customStyles} />
 		  </div>
         </div><p/>
-		<div><button onClick={postPeopleToProject} style={{ fontSize : '48px', height : '80px', width : '65%', backgroundColor : '#808080', color : '#ffffff' }}>Add People to Projects</button></div>
+		<div><button onClick={this.putPeopleToProject} style={{ fontSize : '48px', height : '80px', width : '65%', backgroundColor : '#808080', color : '#ffffff' }}>Add People to Projects</button></div>
         <p/><p/>
 	  </body>
     </div>
