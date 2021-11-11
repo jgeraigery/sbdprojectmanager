@@ -22,6 +22,12 @@ const VIPs = [
 	36540202
 ]
 
+const autoSelected = [
+	12964335,
+	36329995,
+	36330129
+]
+
 const customStyles = {
   option: (provided, state) => ({
     ...provided,
@@ -105,7 +111,8 @@ class App extends React.Component {
     const updatePeopleState = (peopleThumbnails) => {
       const existingthumbnails = this.state.peoplethumbnails
       if (peopleThumbnails && peopleThumbnails.length > 0) {
-        const newimagethumbnails = existingthumbnails.concat(peopleThumbnails)
+        var newimagethumbnails = existingthumbnails.concat(peopleThumbnails)
+		newimagethumbnails.sort((a, b) => (a.tags[0].value > b.tags[0].value) ? 1 : -1)
         this.setState({ peoplethumbnails : newimagethumbnails })
       }
     }
@@ -137,12 +144,17 @@ class App extends React.Component {
 		  for (const personId of VIPs) {
             theResult.get(`https://3.basecampapi.com/${userId}/people/${personId}.json`)
             .done(function(person) {
+			  const autoSelectIndex = autoSelected.indexOf(person.id)
+			  const selectEm = (autoSelectIndex !== -1)
+			  if (selectEm) {
+				targetPeopleIDs.push(person.id)
+			  }
 			  const representationalImage = {
                 src: person.avatar_url,
                 thumbnail: person.avatar_url,
                 thumbnailWidth: 64,
                 thumbnailHeight: 64,
-                isSelected: false,
+                isSelected: selectEm,
                 caption: person.name,
                 tags: [{ value: person.id, title: person.name }]
               }
