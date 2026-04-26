@@ -9,7 +9,7 @@
     "@testing-library/user-event": "^12.8.3",
     "axios": "^0.24.0",
     "express-session": "^1.17.2",
-    "gh-pages": "^3.2.3",
+    "gh-pages": "^4.0.0",
     "oauthio": "^0.3.5",
     "oauthio-web": "^0.6.2",
     "react": "^17.0.2",
